@@ -1,5 +1,5 @@
 import base64
-from Crypto.Cipher import AES
+from .libs.Crypto.Cipher import AES
 
 AES_SECRET_KEY = '_ZhangDapeng520%'  # 此处16|24|32个字符
 IV = "1234567890123456"
