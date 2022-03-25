@@ -3,10 +3,28 @@ name = "zdppy_password"
 version = "0.1.0"
 description = ""
 authors = ["zhangdapeng520 <pygosuperman@outlook.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/zhangdapeng520/zdppy_password"
+repository = "https://github.com/zhangdapeng520/zdppy_password"
+keywords = ["poetry", "zhangdapeng", "zhangdapeng520", "password", "zdppy_password", "zdppy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+]
+include = [
+    "LICENSE",
+    "README.md",
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 pycryptodome = "^3.14.1"
+zdppy-log = "^0.1.7"
 
 [tool.poetry.dev-dependencies]
 
