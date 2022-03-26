@@ -38,6 +38,25 @@ def decrypt(
     return back_text.decode('utf-8')
 
 
+def signer(data, private_key_path: str = "private_key.pem"):
+    private_key = get_key(private_key_path)
+    signer_obj = PKCS1_signature.new(private_key)
+    digest = SHA.new()
+    digest.update(data.encode("utf8"))
+    sign = signer_obj.sign(digest)
+    signature = base64.b64encode(sign)
+    signature = signature.decode('utf-8')
+    return signature
+
+
+def verify(text, signature, public_key_path: str = "public_key.pem"):
+    public_key = get_key(public_key_path)
+    verifier = PKCS1_signature.new(public_key)
+    digest = SHA.new()
+    digest.update(text.encode("utf8"))
+    return verifier.verify(digest, base64.b64decode(signature))
+
+
 class Rsa:
     def __init__(
             self,
@@ -52,9 +71,11 @@ class Rsa:
         random_generator = Random.new().read
         self.rsa = RSA.generate(key_length, random_generator)
         self.log = Log(log_file_path=log_file_path, debug=debug)
-        self.get_key = get_key
-        self.decrypt = decrypt
-        self.encrypt = encrypt
+        self.get_key = get_key  # 获取key
+        self.decrypt = decrypt  # 加密
+        self.encrypt = encrypt  # 解密
+        self.signer = signer  # 签名
+        self.verify = verify  # 校验
 
     def generate_private_key(
             self,
