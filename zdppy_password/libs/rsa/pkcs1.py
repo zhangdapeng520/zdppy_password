@@ -340,11 +340,11 @@ def verify(message: bytes, signature: bytes, pub_key: key.PublicKey) -> str:
     expected = _pad_for_signing(cleartext, keylength)
 
     if len(signature) != keylength:
-        raise VerificationError("Verification failed")
+        raise VerificationError("签名校验失败")
 
     # Compare with the signed one
     if expected != clearsig:
-        raise VerificationError("Verification failed")
+        raise VerificationError("签名校验失败")
 
     return method_name
 
