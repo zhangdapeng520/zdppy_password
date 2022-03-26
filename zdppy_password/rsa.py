@@ -1,5 +1,4 @@
-from .libs.Crypto import Random
-from .libs.Crypto.PublicKey import RSA
+from .libs import rsa
 
 
 class Rsa:
@@ -9,61 +8,35 @@ class Rsa:
         """
         self.private_key = None  # 私钥
         self.public_key = None  # 公钥
-        self.random_generator = Random.new().read  # 随机数据生成器
-        self.rsa = RSA.generate(2048, self.random_generator)  # 生成rsa对象
+        self.public_key, self.private_key = rsa.newkeys(2048)
 
-    def generate_private_key(self, is_to_str: bool = True):
+    def encrypt(self, data, public_key):
         """
-        生成私钥
-        :param is_to_str 是否转换为字符串
+        加密
+        :param data 要加密的内容
+        :param public_key 公钥
         :return:
         """
-        # 生成私钥
-        private_key = self.rsa.exportKey()
-        self.private_key = private_key
+        # 编码
+        temp = data.encode("utf8")
 
-        # 转换为字符串
-        if is_to_str:
-            private_key = private_key.decode('utf-8')
+        # 加密
+        crypto = rsa.encrypt(temp, public_key)
 
-        # 返回私钥
-        return private_key
+        # 返回加密结果
+        return crypto
 
-    def generate_public_key(self, is_to_str: bool = True):
+    def decrypt(self, data, private_key):
         """
-        生成公钥
-        :param is_to_str 是否转换为字符串
+        解密
+        :param data: 加密的数据
+        :param private_key: 私钥
         :return:
         """
-        # 生成公钥
-        public_key = self.rsa.publickey().exportKey()
-        self.public_key = public_key
+        # 将字符串类型转换为字节类型
+        if isinstance(data, str):
+            data = data.encode("utf8")
 
-        # 转换为字符串
-        if is_to_str:
-            public_key = public_key.decode('utf-8')
-
-        # 返回公钥
-        return public_key
-
-    def save_secret_key(self, path: str = "rsa_private_key.pem"):
-        """
-        保存私钥
-        :param path 私钥文件地址
-        :return:
-        """
-
-        # 写入私钥
-        with open(path, 'wb') as f:
-            f.write(self.private_key)
-
-    def save_public_key(self, path: str = "rsa_public_key.pem"):
-        """
-        保存公钥
-        :param path 公钥文件地址
-        :return:
-        """
-
-        # 写入私钥
-        with open(path, 'wb') as f:
-            f.write(self.public_key)
+        temp = rsa.decrypt(data, private_key)
+        result = temp.decode("utf8")
+        return result
