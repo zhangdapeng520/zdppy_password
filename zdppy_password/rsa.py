@@ -1,8 +1,41 @@
 import os
+import base64
 
 from Crypto import Random
 from Crypto.PublicKey import RSA
 from zdppy_log import Log
+from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA
+from Crypto.Signature import PKCS1_v1_5 as PKCS1_signature
+from Crypto.Cipher import PKCS1_v1_5 as PKCS1_cipher
+
+
+def get_key(key_path: str):
+    with open(key_path) as f:
+        data = f.read()
+        key = RSA.importKey(data)
+
+    return key
+
+
+def encrypt(
+        data: str,
+        public_key_path: str = "public_key.pem",
+):
+    public_key = get_key(public_key_path)
+    cipher = PKCS1_cipher.new(public_key)
+    encrypt_text = base64.b64encode(cipher.encrypt(bytes(data.encode("utf8"))))
+    return encrypt_text.decode('utf-8')
+
+
+def decrypt(
+        data: str,
+        private_key_path: str = "private_key.pem",
+):
+    private_key = get_key(private_key_path)
+    cipher = PKCS1_cipher.new(private_key)
+    back_text = cipher.decrypt(base64.b64decode(data), 0)
+    return back_text.decode('utf-8')
 
 
 class Rsa:
@@ -19,6 +52,9 @@ class Rsa:
         random_generator = Random.new().read
         self.rsa = RSA.generate(key_length, random_generator)
         self.log = Log(log_file_path=log_file_path, debug=debug)
+        self.get_key = get_key
+        self.decrypt = decrypt
+        self.encrypt = encrypt
 
     def generate_private_key(
             self,
