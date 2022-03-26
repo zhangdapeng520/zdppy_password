@@ -26,6 +26,7 @@ python = "^3.9"
 zdppy-log = "^0.1.7"
 rsa = "^4.8"
 pycryptodome = "^3.14.1"
+tinyec = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 
