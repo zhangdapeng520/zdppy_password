@@ -8,9 +8,7 @@ data = json.dumps(data)
 print(data)
 
 # 加密
-secret = rsa.encrypt(data, "public_key.pem")
-print(secret)
+secret = rsa.encrypt(data, "public.pem")
 
 # 解密
-print(rsa.decrypt(secret))
-print(json.loads(rsa.decrypt(secret)))
+print(json.loads(rsa.decrypt(secret, "private.pem")))

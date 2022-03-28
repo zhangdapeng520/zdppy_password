@@ -10,6 +10,9 @@ from Crypto.Cipher import PKCS1_v1_5 as PKCS1_cipher
 
 
 def get_key(key_path: str):
+    if not os.path.exists(key_path):
+        return
+
     with open(key_path) as f:
         data = f.read()
         key = RSA.importKey(data)
