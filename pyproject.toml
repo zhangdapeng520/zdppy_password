@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "zdppy_password"
 version = "0.1.0"
-description = ""
+description = "Python用于处理数据和文件加密解密的库"
 authors = ["zhangdapeng520 <pygosuperman@outlook.com>"]
 license = "MIT"
 readme = "README.md"
