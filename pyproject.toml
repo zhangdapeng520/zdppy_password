@@ -27,6 +27,10 @@ zdppy-log = "^0.1.7"
 rsa = "^4.8"
 pycryptodome = "^3.14.1"
 tinyec = "^0.4.0"
+eciespy = "^0.3.11"
+cchardet = "^2.1.7"
+coincurve-stubs = "^9.0.0"
+
 
 [tool.poetry.dev-dependencies]
 

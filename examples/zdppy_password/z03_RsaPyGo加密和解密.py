@@ -1,7 +1,7 @@
-from zdppy_password.rsa import Rsa
+from zdppy_password import RsaPyGo
 import json
 
-rsa = Rsa()
+rsa = RsaPyGo()
 
 data = {"username": "张大鹏", "age": 22}
 data = json.dumps(data)

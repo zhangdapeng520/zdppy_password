@@ -1,4 +1,4 @@
-from zdppy_password.rsa import Rsa
+from zdppy_password import Rsa
 import json
 
 rsa = Rsa()
@@ -8,7 +8,7 @@ data = json.dumps(data)
 print(data)
 
 # 签名
-signer = rsa.signer(data, "private.pem")
+signer = rsa.sign(data)
 print(signer)
 
 # 校验

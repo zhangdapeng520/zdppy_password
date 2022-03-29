@@ -37,8 +37,9 @@ print(aes.decrypt("0qg69fOjmE0oR59muWdXoWhr5d4Z0XyQaC69684mAsw="))
 ```
 
 ## 案例2：RSA加密和解密
+
 ```python
-from zdppy_password.rsa import Rsa
+from zdppy_password.rsa_py_go import Rsa
 import json
 
 rsa = Rsa()
