@@ -40,7 +40,7 @@ def decrypt(
     return back_text.decode('utf-8')
 
 
-def signer(data, private_key_path: str = "private_key.pem"):
+def signer(data, private_key_path: str = "private.pem"):
     private_key = get_key(private_key_path)
     signer_obj = PKCS1_signature.new(private_key)
     digest = SHA.new()
@@ -51,7 +51,7 @@ def signer(data, private_key_path: str = "private_key.pem"):
     return signature
 
 
-def verify(text, signature, public_key_path: str = "public_key.pem"):
+def verify(text, signature, public_key_path: str = "public.pem"):
     public_key = get_key(public_key_path)
     verifier = PKCS1_signature.new(public_key)
     digest = SHA.new()

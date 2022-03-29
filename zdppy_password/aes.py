@@ -1,80 +1,58 @@
 import base64
+
 from Crypto.Cipher import AES
 
-AES_SECRET_KEY = '_ZhangDapeng520%'  # 此处16|24|32个字符
-IV = "1234567890123456"
 
-# padding算法
-BS = len(AES_SECRET_KEY)
-pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
-unpad = lambda s: s[0:-ord(s[-1:])]
+def pkcs7padding(data):
+    bs = AES.block_size
+    padding = bs - len(data) % bs
+    padding_text = chr(padding) * padding
+    return data + padding_text.encode()
 
 
-class Aes(object):
-    def __init__(self, key: str = None, encoding: str = "utf8"):
+def pkcs7unpadding(data):
+    lengt = len(data)
+    unpadding = data[lengt - 1] if type(data[lengt - 1]) is int else ord(data[lengt - 1])
+    return data[0:lengt - unpadding]
+
+
+class Aes:
+    """
+        兼容Python和Golang的AES加密算法
         """
-        初始化Aes加密对象
-        :param key: 加密的key
-        :param encoding: 字符串编码
+
+    def __init__(self, key: str = "_ZhangDapeng520%"):
+        self.key = key.encode()
+
+    def encrypt(self, data):
         """
-        self.encoding = encoding  # 字符串编码
-        self.ciphertext = None  # 加密后的文本
-        self.key = AES_SECRET_KEY  # 加密的key
-        if key is not None:
-            self.key = key
-        self.mode = AES.MODE_CBC  # 加密的模式
-
-    def encrypt(self, text, is_to_str: bool = True):
+        AES 加密， 加密模式ECB，填充：pkcs7padding，密钥长度：256
+        :param data:
+        :return:
         """
-        加密
-        :param text 要加密的文本
-        :param is_to_str 是否转换为字符串
-        :return: AES加密后的文本
+        data = pkcs7padding(data)
+        cipher = AES.new(self.key, AES.MODE_ECB)
+        encrypted = cipher.encrypt(data)
+        return base64.b64encode(encrypted)
+
+    def decrypt(self, data):
         """
-        # 生成cryptor
-        cryptor = AES.new(self.key.encode(self.encoding), self.mode, IV.encode(self.encoding))
-
-        # 加密文本
-        self.ciphertext = cryptor.encrypt(bytes(pad(text), encoding=self.encoding))
-
-        # AES加密时候得到的字符串不一定是ascii字符集的，输出到终端或者保存时候可能存在问题，使用base64编码
-        result = base64.b64encode(self.ciphertext)
-
-        if is_to_str:
-            return result.decode(self.encoding)
-
-        # 返回结果
-        return result
-
-    # 解密函数
-    def decrypt(self, text, is_to_str: bool = True):
+        AES解密
+        :param data: 要解密的数据
+        :return: 解密后的数据
         """
-        加密AES加密后的文本
-        :param text: AES加密后的文本
-        :param is_to_str 是否转换为字符串
-        :return: AES解密后的文本
-        """
-        # base64解码
-        decode = base64.b64decode(text)
-
-        # 创建cryptor
-        cryptor = AES.new(self.key.encode(self.encoding), self.mode, IV.encode(self.encoding))
-
-        # 解密文本
-        plain_text = cryptor.decrypt(decode)
-        result = unpad(plain_text)
-
-        # 转换为字符串
-        if is_to_str:
-            result = result.decode(self.encoding)
-
-        # 返回解密后的结果
-        return result
+        data = base64.b64decode(data)
+        cipher = AES.new(self.key, AES.MODE_ECB)
+        decrypted = cipher.decrypt(data)
+        decrypted = pkcs7unpadding(decrypted)
+        return decrypted.decode()
 
 
 if __name__ == '__main__':
     aes = Aes()
-    data = "{'name':'zhangdapeng'}"
-    t = aes.encrypt(data)
-    print(t)
-    print(aes.decrypt(t))
+    res = aes.encrypt(b'{"cmd": 3000, "msg": "ok"}').decode(encoding='utf-8')
+    print(res)
+    print(aes.decrypt(res))
+
+    # 从go复制过来的
+    print(aes.decrypt("0qg69fOjmE0oR59muWdXoWhr5d4Z0XyQaC69684mAsw="))

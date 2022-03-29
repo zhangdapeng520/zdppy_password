@@ -8,7 +8,7 @@ data = json.dumps(data)
 print(data)
 
 # 签名
-signer = rsa.signer(data, "private_key.pem")
+signer = rsa.signer(data, "private.pem")
 print(signer)
 
 # 校验
