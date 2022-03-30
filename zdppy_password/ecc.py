@@ -1,87 +1,121 @@
-import binascii
-
-from tinyec import registry
-from Crypto.Cipher import AES
-import hashlib
-import secrets
-import base64
-import json
+import os
+import traceback
+import coincurve
+import ecies
+from coincurve.utils import sha256
+from .type_tool import TypeTool
+from .b64 import Base64
 
 
 class Ecc:
-    def __init__(self):
-        self.curve = registry.get_curve('brainpoolP256r1')
-        self.private_key = secrets.randbelow(self.curve.field.n)
-        self.public_key = self.private_key * self.curve.g
+    @classmethod
+    @TypeTool.type_assert
+    def generate_key_pair(cls) -> [tuple]:
+        """
+        生成公钥和私钥
+        :return:
+        """
+        # 生成私钥
+        private_key = coincurve.PrivateKey()
 
-    @staticmethod
-    def __encrypt_aes_gcm(data, secret_key):
-        aes_cipher = AES.new(secret_key, AES.MODE_GCM)
-        ciphertext, auth_tag = aes_cipher.encrypt_and_digest(data)
-        return ciphertext, aes_cipher.nonce, auth_tag
+        # 将公钥和私钥base64编码
+        b64_private_key = Base64.encode(private_key.secret)
+        b64_public_key = Base64.encode(private_key.public_key.format())
 
-    @staticmethod
-    def __decrypt_aes_gcm(ciphertext, nonce, auth_tag, secret_key):
-        aes_cipher = AES.new(secret_key, AES.MODE_GCM, nonce)
-        plaintext = aes_cipher.decrypt_and_verify(ciphertext, auth_tag)
-        return plaintext
+        # 返回公钥和私钥
+        return b64_private_key, b64_public_key
 
-    @staticmethod
-    def __ecc_point_to_256_bit_key(point):
-        sha = hashlib.sha256(int.to_bytes(point.x, 32, 'big'))
-        sha.update(int.to_bytes(point.y, 32, 'big'))
-        return sha.digest()
-
-    def encrypt(self, data):
+    @classmethod
+    @TypeTool.type_assert
+    def encrypt(cls,
+                data: [str, bytes, bytearray],
+                public_key: [str, bytes, bytearray]) -> [bytes]:
         """
         ecc加密
         :param data: 要加密的数据
+        :param public_key: 公钥
         :return: 加密后的数据
         """
-        cipher_text_private_key = secrets.randbelow(self.curve.field.n)
-        shared_ecc_key = cipher_text_private_key * self.public_key
-        secret_key = self.__ecc_point_to_256_bit_key(shared_ecc_key)
-        ciphertext, nonce, auth_tag = self.__encrypt_aes_gcm(data, secret_key)
-        cipher_text_public_key = cipher_text_private_key * self.curve.g
+        error_return = bytes()
+        try:
+            # 将数据转换为字节数组
+            data = TypeTool.type_sbb_2_bytes(data)
+            public_key = TypeTool.type_sbb_2_bytes(public_key)
 
-        # 转换为加密字符串
-        print("============", ciphertext, type(ciphertext))
-        # 转换为16进制
-        ciphertext16 = binascii.hexlify(ciphertext)
-        print("============", ciphertext16)
-        print("============", ciphertext16.decode())
-        _data = ciphertext, nonce, auth_tag, cipher_text_public_key
-        return _data
+            # 进行加密
+            return ecies.encrypt(Base64.decode(public_key), data)
+        except:
+            traceback.print_exc()
+            return error_return
 
-    def decrypt(self, data):
+    @classmethod
+    @TypeTool.type_assert
+    def decrypt(cls,
+                data: [str, bytes, bytearray],
+                private_key: [str, bytes, bytearray]) -> bytes:
         """
-        ecc解密
+        ECC解密
         :param data: 要解密的数据
-        :return: 解密后的数据
+        :param private_key: 私钥
+        :return:
         """
+        error_return = bytes()
+        try:
+            # 将参数转换为字节数组
+            data = TypeTool.type_sbb_2_bytes(data)
+            private_key = TypeTool.type_sbb_2_bytes(private_key)
 
-        (cipher_text, nonce, auth_tag, ciphertext_public_key) = data
-        shared_ecc_ey = self.private_key * ciphertext_public_key
-        secret_key = self.__ecc_point_to_256_bit_key(shared_ecc_ey)
-        _data = self.__decrypt_aes_gcm(cipher_text, nonce, auth_tag, secret_key)
-        return _data
+            # 进行解密
+            return ecies.decrypt(Base64.decode(private_key), data)
+        except:
+            traceback.print_exc()
+            return error_return
 
+    @classmethod
+    @TypeTool.type_assert
+    def sign(cls,
+             data: [str, bytes, bytearray],
+             private_key: [str, bytes, bytearray],
+             hasher=sha256) -> [bytes]:
+        """
+        生成签名
+        :param data: 要签名的数据
+        :param private_key: 私钥
+        :param hasher: hash算法
+        :return:
+        """
+        signature = bytes()
+        try:
+            data = TypeTool.type_sbb_2_bytes(data)
+            private_key = TypeTool.type_sbb_2_bytes(private_key)
+            private_key_obj = coincurve.PrivateKey(Base64.decode(private_key))
+            signature = private_key_obj.sign(data, hasher=hasher)
+        except:
+            traceback.print_exc()
+        return Base64.encode(signature)
 
-if __name__ == '__main__':
-    data = b'Text to be encrypted by ECC public key and decrypted by its corresponding ECC private key'
-    print("original data:", data)
-
-    # 创建私钥
-    ecc = Ecc()
-    print("私钥：", ecc.private_key)
-
-    # 创建公钥
-    print("公钥：", ecc.public_key)
-
-    # 加密内容
-    encrypted_data = ecc.encrypt(data)
-    print("encrypted data:", encrypted_data)
-
-    # 解密内容
-    decrypted_data = ecc.decrypt(encrypted_data)
-    print("decrypted data:", decrypted_data)
+    @classmethod
+    @TypeTool.type_assert
+    def verify(cls,
+               data: [str, bytes, bytearray],
+               signature: [str, bytes, bytearray],
+               public_key: [str, bytes, bytearray],
+               hasher=sha256) -> [bool]:
+        """
+        验证签名
+        :param data: 要验证签名的数据
+        :param signature: 签名
+        :param public_key: 公钥
+        :param hasher: hash算法
+        :return: 验证结果
+        """
+        result = False
+        try:
+            data = TypeTool.type_sbb_2_bytes(data)
+            signature = TypeTool.type_sbb_2_bytes(signature)
+            public_key = TypeTool.type_sbb_2_bytes(public_key)
+            public_key_obj = coincurve.PublicKey(Base64.decode(public_key))
+            return public_key_obj.verify(Base64.decode(signature), data, hasher=hasher)
+        except:
+            traceback.print_exc()
+            return result
